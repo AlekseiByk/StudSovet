@@ -4,8 +4,10 @@ import os
 import socket
 import threading
 
-server_ip   = "0.0.0.0"
-server_port = 8000
+server_ip   = "0.0.0.0"    #ip address of the server
+server_port = 8000         #port of the server
+master_port = 8888         #port for master block
+admin_EAC_path = "/home/config/"  #file format: {admin_EAC_path}/{mac}.txt
 
 #------------------------------------------------------------------------------
 
@@ -47,8 +49,8 @@ def accept_read(tcp_socket_host):
 
     #if initialization passed -> add new socket to array of clients
     sockets.append( {"mac": lock_name, "socket": soc})
-
-    key_file = open("/home/admin/ssFRKT-bot/configs/" + lock_name + ".txt", "r")
+    #send initialization array of admin EACs
+    key_file = open(admin_EAC_path + lock_name + ".txt", "r")
     Lines = key_file.readlines()
     keys = "update"
     for line in Lines:
@@ -73,12 +75,14 @@ def accept_read(tcp_socket_host):
                             str(recv_data), 
                             extra = {'user': lock_name})
                 data = str(recv_data.decode('ascii'))
+                
                 if data.find("request") != -1:
                     card_uid = (data.split('/'))[3]
                     logger_x.info(f"open request: {card_uid}",
                                 extra= {'user': lock_name})
                     permission, time = check_booking(lock_name, card_uid)
                     soc.send(f'reply {permission} {time:09}'.encode("gbk"))
+                    
                 elif data.find("scanned") != -1:
                     card_uid = (data.split('/'))[3]
                     sock.send(f'{lock_name}/scanned/{card_uid}'.encode("gbk"))
@@ -92,7 +96,7 @@ def accept_read(tcp_socket_host):
             sockets.remove(next(x for x in sockets if x["socket"] == soc))
             return
 
-
+#function for checking access
 def check_booking(lock_name, card_uid):
     #lockname = mac addres of thr lock controller
     #card uid = serial number of EAC
@@ -117,10 +121,10 @@ def main():
     thread = threading.Thread(target=accept_read, args=(tcp_socket_host,))
     thread.start()
 
-    #creating server for master on port 8888
+    #creating server for master on port master_port in localhost
     soc_master = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     soc_master.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR, True)
-    soc_master.bind(('127.0.0.1', 8888))
+    soc_master.bind(('127.0.0.1', master_port))
     soc_master.listen(8)
 
     #master can connect to server many times, but only one master can be at a time
@@ -142,6 +146,7 @@ def main():
                                   str(recv_data), 
                                   extra = {'user':'server'})
                     try:
+                        #message format from master : "mac/open/time" 
                         mac    =     (str(recv_data.decode("ascii")).split('/'))[0]
                         action =     (str(recv_data.decode("ascii")).split('/'))[1]
                         time   = int((str(recv_data.decode("ascii")).split('/'))[2])
@@ -149,21 +154,22 @@ def main():
                         logger_x.info("wrong message format", extra = {'user':'server'})
                         continue
                     try:
-                        #message format from master : "mac/open/time" 
                         soc1 = (next(x for x in sockets if x["mac"] == mac))["socket"]
+                        #open for time seconds
                         if (action == "open"):
                             soc1.send(f'open 1 {time:09}'.encode("gbk"))
+                        #update admin EAC list
                         if (action == "update"):
-                            key_file = open(
-                                "/home/admin/ssFRKT-bot/configs/" + mac + ".txt", "r")
+                            key_file = open(admin_EAC_path + mac + ".txt", "r")
                             Lines = key_file.readlines()
                             keys = "update"
                             for line in Lines:
                                 keys += " " + line.split('/')[0].strip().lower()
                             soc1.send(keys.encode("gbk"))
+                        #scan EAC functionality
                         if (action == "scan"):
                             soc1.send(f"scan {time:09}".encode("gbk"))
-                            
+                    #if client not found -> report log
                     except StopIteration:
                         logger_x.info("%s", 
                                       str(recv_data), 

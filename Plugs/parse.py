@@ -6,9 +6,9 @@ date = datetime.datetime.now().date()
 log_file = open(f"logs/Plugs{date}.log", "r")
 Lines = log_file.readlines()
 
-i = 0
-x = [[],[],[],[],[],[],[]]
-y = [[],[],[],[],[],[],[]]
+number_of_plugs = 7
+x = [[]*number_of_plugs]
+y = [[]*number_of_plugs]
 for line in Lines:
     obj = datetime.datetime.strptime(line.split(' ')[0] + " " + line.split(' ')[1], "%Y-%m-%d %H:%M:%S,%f")
     sec = obj.time().hour * 60 * 60 + obj.time().minute * 60 + obj.time().second

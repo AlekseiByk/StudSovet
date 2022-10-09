@@ -10,6 +10,7 @@ import sys
 from time import sleep
 
 d = []
+DB = none
 
 dev = open('devices.json')
 devices = json.load(dev)         # returns JSON object as a dict
@@ -67,8 +68,14 @@ def log_program():
 		threads.clear()
 		sleep(90)
 		state = True
+
+def run_main():
+	global DB
+	# TODO check time for booking
+	# TODO if booking -> turn on -> check current every min -> start of washing -> end of washing -> notificate -> turn off
 		
 def main():
+	# TODO connect DB -> start threads
 	return
 
 
