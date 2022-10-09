@@ -20,9 +20,9 @@ def run_logging(plug_number):
 		d[plug_number].updatedps([18,20]) 
 		data = d[plug_number].status()
 
-		log_str = str(devices[plug_number].get('name')) + " -> " + str(data.get('dps').get('1')) + ", " + str(data.get('dps').get('20') / 10) +  " V, " +  str(data.get('dps').get('18')) +  " mA"
+		log_str = f"{data.get('dps').get('1')}, {data.get('dps').get('20') / 10} V, {data.get('dps').get('18')} mA"
 		#log_str = str(data.get('dps').get('20')) + " ; " + str(data.get('dps').get('18')) + " ; ")
-		logger.info(log_str, extra = {'user':'server'})
+		logger.info(log_str, extra = {'user':devices[plug_number].get('name')})
 		time.sleep(5)
 
 
@@ -40,7 +40,7 @@ def main():
 	threads = []
 	i = 0
 	for device in d:
-		threads.attach( threading.Thread(target=accept_read, args=(tcp_socket_host, )) )          
+		threads.attach( threading.Thread(target=run_logging, args=(i, )) )          
 		threads[i].start()
 		i += 1
 
