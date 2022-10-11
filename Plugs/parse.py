@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 
-log_file = open("Plugs.log", "r")
+date = datetime.datetime.now().date()
+log_file = open(f"logs/Plugs{date}.log", "r")
 Lines = log_file.readlines()
 
 i = 0
@@ -22,7 +23,7 @@ for x_cord in x:
     plt.xlabel('время, сек')
     plt.ylabel('ток, мА')
     plt.xticks(range(25))
-    plt.savefig(f'output/plot{i+1}.png')
+    plt.savefig(f'output/plot{date}_{i+1}.png')
     i += 1
 
 plt.show()
