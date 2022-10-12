@@ -6,18 +6,25 @@ date = datetime.datetime.now().date()
 log_file = open(f"logs/Plugs{date}.log", "r")
 Lines = log_file.readlines()
 
+x = [[]]
+y = [[]]
 number_of_plugs = 7
-x = [[]*number_of_plugs]
-y = [[]*number_of_plugs]
-for line in Lines:
+
+for i in range(number_of_plugs - 1):
+    x.append([])
+    y.append([])
+
+for line in Lines:  
     obj = datetime.datetime.strptime(line.split(' ')[0] + " " + line.split(' ')[1], "%Y-%m-%d %H:%M:%S,%f")
     sec = obj.time().hour * 60 * 60 + obj.time().minute * 60 + obj.time().second
-    x[int(line.split(' ')[4]) - 1].append(sec/3600)
+    (x[int(line.split(' ')[4]) - 1]).append(sec/3600)
     y[int(line.split(' ')[4]) - 1].append(int(line.split(' ')[9]))
 
+i = 0
 for x_cord in x:
     plt.figure(figsize=[48, 16], dpi=120)
-    plt.plot(x_cord, y[i], label = f"washer {i + 1}")
+    print(len(x_cord))
+    plt.plot(x_cord, y[i], '-', label = f"washer {i + 1}")
     for x_x in range(12):
         plt.axvline(x_x * 2, color = "r")
     plt.xlabel('время, сек')
