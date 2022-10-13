@@ -14,16 +14,27 @@ secret = ""
 
 d = []
 DB = None
-
-dev = open('devices.json')
-devices = json.load(dev)         # returns JSON object as a dict
-dev.close()
+state = True
+cur_state = True
+devices = None
 
 logger = logging.getLogger("Plugs")
-state = True
 
-def wait_until(time):
-    Time = datetime.time(*(map(int, time.split(':'))))
+def prepare_var():
+	global devices
+	dev = open('/home/pi/Desktop/Plugs/config/devices.json')
+	devices = json.load(dev)         # returns JSON object as a dict
+	dev.close()
+	i = 0
+	for device in devices:
+		d.append( tinytuya.OutletDevice(device.get('id'), device.get('ip'), device.get('key')))
+		d[i].set_version(3.3) 
+		i += 1
+
+
+
+def wait_until(stop_time):
+    Time = datetime.time(*(map(int, stop_time.split(':'))))
     while Time > datetime.datetime.today().time(): # you can add here any additional variable to break loop if necessary
         time.sleep(10)# you can change 1 sec interval to any other
     return
@@ -31,7 +42,7 @@ def wait_until(time):
 def set_logger(logger: logging.Logger, filename):
 	format = "%(asctime)s >>> %(user)-9s - %(message)s"
 	logging.basicConfig(level=logging.INFO, format=format)
-	filehand = logging.FileHandler(f"logs/{filename}")
+	filehand = logging.FileHandler(f"/home/pi/Desktop/Plugs/logs/{filename}")
 	filehand.setFormatter(logging.Formatter(format))
 	logger.addHandler(filehand)
 
@@ -49,24 +60,27 @@ def run_logging(plug_number):
 
 
 def log_program():
+	prepare_var()
+	
+	obj = datetime.datetime.now()
+	set_logger(logger, f"Plugs{obj.date()}.log")
+
+	threads = []
+	i = 0
+	for device in d:
+		print(i)
+		threads.append( threading.Thread(target=run_logging, args=(i, )) )          
+		threads[i].start()
+		i += 1
+
 	while True:
-		i = 0
-		for device in devices:
-			d.append( tinytuya.OutletDevice(device.get('id'), device.get('ip'), device.get('key')))
-			d[i].set_version(3.3) 
-			i += 1       # Closing file
+    	
+		wait_until("23:59")
+		
+		logger.close()
 		obj = datetime.datetime.now()
 		set_logger(logger, f"Plugs{obj.date()}.log")
-
-		threads = []
-		i = 0
-		for device in d:
-			print(i)
-			threads.append( threading.Thread(target=run_logging, args=(i, )) )          
-			threads[i].start()
-			i += 1
-
-		wait_until("23:59")
+		
 		state = False
 		threads.clear()
 		time.sleep(90)
@@ -76,12 +90,16 @@ LOG = 1
 FIN = 0
 		
 def notification(number, option = FIN, text = ''):
+	global logger
 	if option == FIN:
 		payload = {'finished': number}
+		logger.info("finished " + str(number), extra = {'user':devices[number].get('name')})
 	else:
 		payload = {'log': str(number) + '=' + text}
+		logger.info(str(number) + '=' + text, extra = {'user':devices[number].get('name')})
 	# TODO check this if-else for working
-	requests.post(server_url+secret, data=payload)
+	#requests.post(server_url+secret, data=payload)
+
 
 def run_main(plug_number):
 	global DB, devices, logger, state
@@ -90,11 +108,11 @@ def run_main(plug_number):
 		d[plug_number].updatedps([18,20]) 
 		data = d[plug_number].status()
 		
-		if (int(data.get('dps').get('18')) > 0 and cur_state = False):
+		if (int(data.get('dps').get('18')) > 0 and cur_state == False):
 			cur_state = True
 			notification(plug_number, option = LOG, text = 'start_washing')
 		
-		if (int(data.get('dps').get('18')) == 0 and cur_state = True):
+		if (int(data.get('dps').get('18')) == 0 and cur_state == True):
 			cur_state = False
 			notification(plug_number, option = LOG, text = 'end_washing')
 			
@@ -113,6 +131,17 @@ def run_main(plug_number):
 def main():
 	# TODO connect DB -> start threads
 	# TODO check for new booking
+	prepare_var()
+	obj = datetime.datetime.now()
+	set_logger(logger, f"logs/main.log")
+
+	threads = []
+	i = 0
+	for device in d:
+		print(i)
+		threads.append( threading.Thread(target=run_logging, args=(i, )) )          
+		threads[i].start()
+		i += 1
 	return
 
 
