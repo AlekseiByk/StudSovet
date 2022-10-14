@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 
-date = datetime.datetime.now().date()
+date = datetime.date.today() - datetime.timedelta(days=1)
 log_file = open(f"logs/Plugs{date}.log", "r")
 Lines = log_file.readlines()
 

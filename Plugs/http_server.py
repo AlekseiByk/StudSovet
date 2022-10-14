@@ -29,8 +29,9 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):                   
         if data.split('=')[0] == 'finished':
             washer = int( data.split('=')[1])
             #TODO send notification to user
-        elif data.split('=')[0] == 'log':
-            logger.info(f"washer {data.split('=')[1] : 02} - " + data.split('=')[2])
+        else:
+            washer = int( data.split('=')[1])
+            logger.info(f"washer {washer : 02} - " + data.split('=')[0])
         self.send_response(http.server.HTTPStatus.OK)
         self.end_headers()
 

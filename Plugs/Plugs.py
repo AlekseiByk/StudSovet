@@ -75,16 +75,12 @@ def log_program():
 
 	while True:
     	
-		wait_until("23:59")
+		wait_until("23:59:50")
+		time.sleep(12)
 		
-		logger.close()
 		obj = datetime.datetime.now()
+		logger.removeHandler(logger.handlers[0])
 		set_logger(logger, f"Plugs{obj.date()}.log")
-		
-		state = False
-		threads.clear()
-		time.sleep(90)
-		state = True
 		
 LOG = 1
 FIN = 0
@@ -95,7 +91,7 @@ def notification(number, option = FIN, text = ''):
 		payload = {'finished': number}
 		logger.info("finished " + str(number), extra = {'user':devices[number].get('name')})
 	else:
-		payload = {'log': str(number) + '=' + text}
+		payload = {text: number}
 		logger.info(str(number) + '=' + text, extra = {'user':devices[number].get('name')})
 	# TODO check this if-else for working
 	#requests.post(server_url+secret, data=payload)
