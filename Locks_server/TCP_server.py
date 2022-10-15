@@ -8,6 +8,7 @@ server_ip   = "0.0.0.0"    #ip address of the server
 server_port = 8000         #port of the server
 master_port = 8888         #port for master block
 admin_EAC_path = "/home/config/"  #file format: {admin_EAC_path}/{mac}.txt
+logs_path = "/home/logs/"
 
 #------------------------------------------------------------------------------
 
@@ -106,7 +107,6 @@ def check_booking(lock_name, card_uid):
 def main():
     global sock
     locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
-    connect_DB()
     set_logger(logger_x, "server.log")
     set_logger(logger, "bad.log")
     logger_x.info("Start", extra = {'user':'server'})
@@ -182,7 +182,7 @@ def main():
 def set_logger(logger: logging.Logger, filename):
     format = "%(asctime)s >>> %(process)d %(user)-12s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=format)
-    filehand = logging.FileHandler(f"/home/admin/ssFRKT-bot/logs/{filename}")
+    filehand = logging.FileHandler(logs_path + filename)
     filehand.setFormatter(logging.Formatter(format))
     logger.addHandler(filehand)
 

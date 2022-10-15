@@ -30,17 +30,10 @@ class Lock_Communicator:
 
     def scan_EAC(self):
         # data format: {mac}/scanned/eac_number
-        data = self.__send_lock_data__('scan', 15, 'Club', recv_data=True)
+        data = self.__send_lock_data__('scan', 15, <mac_of_lock>, recv_data=True)
         data = data.split('/')
 
         if data[1] == 'scanned':
             return data[2]
         else:
             raise ValueError('Incorrect data from lock during scan')
-
-    
-    def open_KDS(self):
-        self.__send_lock_data__('open', 10, 'KDS')
-
-    def open_Club(self):
-        self.__send_lock_data__('open', 10, 'Club')
