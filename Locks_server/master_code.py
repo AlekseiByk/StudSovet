@@ -37,3 +37,6 @@ class Lock_Communicator:
             return data[2]
         else:
             raise ValueError('Incorrect data from lock during scan')
+        
+    def open(self, mac):
+        self.__send_lock_data__('open', 10, mac)

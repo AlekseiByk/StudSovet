@@ -28,7 +28,7 @@ def prepare_var():
 	i = 0
 	for device in devices:
 		d.append( tinytuya.OutletDevice(device.get('id'), device.get('ip'), device.get('key')))
-		d[i].set_version(3.3) 
+		d[i].set_version(device.get('ver'))
 		i += 1
 
 
@@ -50,12 +50,16 @@ def run_logging(plug_number):
 	global devices, logger, state
 
 	while state:
-		d[plug_number].updatedps([18,20]) 
-		data = d[plug_number].status()
+		try:
+			d[plug_number].updatedps([18,20]) 
+			data = d[plug_number].status() 
+			d.close()
 
-		log_str = f"{data.get('dps').get('1')}, {data.get('dps').get('20')} V, {data.get('dps').get('18') :06} mA"
-		logger.info(log_str, extra = {'user':devices[plug_number].get('name')})
-		time.sleep(60)
+			log_str = f"{data.get('dps').get('1')}, {data.get('dps').get('20')} V, {data.get('dps').get('18') :06} mA"
+			logger.info(log_str, extra = {'user':devices[plug_number].get('name')})
+			time.sleep(60)
+		except:
+			time.sleep(60)
 	return
 
 
